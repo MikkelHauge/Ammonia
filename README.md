@@ -1,5 +1,7 @@
 # Ammonia
-Ammonia is an addon made specifically for hunters, but it works for warriors and rogues as well.
+Ammonia is a WoW Forever addon made specifically for hunters, but it works for warriors and rogues as well.
+
+Note this addon does not work in retail, and only works somewhat in classic.
 
 What it does is, provide the player with notifications (in chat) about their ammo needs.
 
