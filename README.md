@@ -5,19 +5,23 @@ Note this addon does not work in retail, and only works somewhat in classic.
 
 What it does is, provide the player with notifications (in chat) about their ammo needs.
 
-* In combat, under a certain threshhold (every x shot; "Low ammo: 150 shots left")
-* Out of combat, when talking to a vendor, reminding you to stock up.
-* In general when having a ranged weapon equipped, but no associated ammo (incl incorrect ammo. This one would be printed out every 5 minutes, until the problem is fixed.
-* Login greeting that tells you how much ammo you got left, if any
+* Low ammo - as your ammo falls to a new step (400, 350, 300), it prints a line such as “Low ammo: 350 bullets left”. This is based on remaining ammo, not a shot counter, and it can happen in or out of combat.
+* Missing or wrong ammo - if a bow, gun or crossbow is equipped but the ammo slot has no compatible ammo, it reminds you 15 seconds after login or equipping the weapon, and again every five minutes until fixed.
+* Ammo vendor - when you open a vendor that sells ammo while a ranged weapon is equipped, it reminds you to stock up. Once per vendor visit, an optional cooldown limits repeats across visits. (Default 30 sec)
+* Other vendors - if you are low and open a vendor that does not sell ammo, it tells you to find one that does.
+* Login greeting - optionally tells you how much ammo you have left when you log in or reload.
 
-It does combine all arrows (or bullets) into 1 number. So if you got both of these:
+It adds up every stack of the same ammo item in your bags. If you carry more than one type of the firing ammo, it shows the equipped type and the spare types separately.
+
+You can choose chat messages, a chime, or both for the vendor and missing-ammo reminders; choose the message colour, chime and volume; edit the vendor reminder text; and adjust the low-ammo start and step. The minimap icon opens the settings with left-click and switches reminders on or off with right-click.
+
+Ammonia does not buy ammo, does not know where another vendor is, and does not count bank, mail or auction stock. It supports bows, guns and crossbows only.
+
+## Examples:
 
 <img width="190" height="65" alt="{7D5CF459-2A50-4672-905C-F5DFEC8E389E}" src="https://github.com/user-attachments/assets/127e88f0-b071-45ad-9baf-41740a9bfefd" />
 
 <img width="198" height="60" alt="{0042B365-8215-46D2-ABF8-6B419567493F}" src="https://github.com/user-attachments/assets/dbb94ddd-df50-45c7-8191-35420cb0291d" />
-
-Their total will be combined in the reminders.
-
 
 In-combat notifications, fires every X shot (customizable)
 
@@ -35,6 +39,7 @@ You can customize most of these, incl adding a audible notification chrime, in t
 
 <img width="816" height="1811" alt="ammonia-settingsfull" src="https://github.com/user-attachments/assets/e98434b2-be04-4481-8350-5567235d6989" />
 
-Available commands:
+
+### Available commands:
 
 /ammonia, on, off, toggle, test, warn, ammo, vendors, missing, vendorwarn, reset
