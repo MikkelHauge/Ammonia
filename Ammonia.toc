@@ -7,4 +7,7 @@
 ## IconTexture: Interface\Icons\INV_Ammo_Arrow_01
 
 Core.lua
+Core\Ammo.lua
+Core\Reminders.lua
+Core\Events.lua
 UI.lua
