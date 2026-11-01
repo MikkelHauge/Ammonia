@@ -166,6 +166,9 @@ function ns.TryLowAmmoMerchantWarning()
 	if DEFAULT_CHAT_FRAME then
 		DEFAULT_CHAT_FRAME:AddMessage("You're low on Ammo, find a merchant that sells it", colour.r, colour.g, colour.b)
 	end
+	-- Same chime as the other vendor and missing-ammo reminders, so a low
+	-- warning at the wrong vendor is not the one silent message.
+	ns.PlayChime()
 end
 
 local function ScheduleMerchantAmmoCheck()

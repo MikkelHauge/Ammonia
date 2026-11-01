@@ -13,7 +13,7 @@ What it does is, provide the player with notifications (in chat) about their amm
 
 It adds up every stack of the same ammo item in your bags. If you carry more than one type of the firing ammo, it shows the equipped type and the spare types separately.
 
-You can choose chat messages, a chime, or both for the vendor and missing-ammo reminders; choose the message colour, chime and volume; edit the vendor reminder text; and adjust the low-ammo start and step. The minimap icon opens the settings with left-click and switches reminders on or off with right-click.
+You can choose chat messages, a chime, or both for the vendor, other-vendor and missing-ammo reminders; choose the message colour, chime and volume; edit the vendor reminder text; and adjust the low-ammo start and step. The minimap icon opens the settings with left-click and switches reminders on or off with right-click.
 
 Ammonia does not buy ammo, does not know where another vendor is, and does not count bank, mail or auction stock. It supports bows, guns and crossbows only.
 
