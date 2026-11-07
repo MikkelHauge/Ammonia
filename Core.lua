@@ -244,8 +244,6 @@ local DEFAULTS = {
 	volume = 0.8,
 	useCooldown = true,
 	cooldown = 30,
-	-- Per-character ammo use counts, filled in by Core\Shots.lua.
-	shots = {},
 	icon = {
 		shown = true,
 		locked = false,

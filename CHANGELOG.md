@@ -6,20 +6,6 @@ marked for Retail. Classic Era support is partial.
 
 ---
 
-## 20261107.1 - 7 November 2026
-
-**Added**
-
-- Ammo use counter, stored per character: every shot and ranged ability use
-  is counted against the ammo type in the slot at that moment. Multi-Shot and
-  Volley count once per use, not once per target.
-- The bottom of the settings window shows the totals (arrows, bullets, all)
-  and one row per ammo type, most used first.
-- `/ammonia shots` prints the current character's totals and the combat-log
-  state, for checking the counter in game.
-
----
-
 ## 20261107 - 7 November 2026
 
 First released build.

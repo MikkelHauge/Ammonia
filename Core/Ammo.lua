@@ -513,19 +513,6 @@ ns.HasCompatibleAmmoEquipped = HasCompatibleAmmoEquipped
 ns.AmmoAmountText = AmmoAmountText
 ns.AmmoLabel = AmmoLabel
 
--- The ammo item sitting in the ammo slot, with its display name and kind.
--- This reads the slot only (no bag scan), so the shot counter can call it on
--- every shot without walking every bag.
-function ns.GetEquippedAmmoInfo()
-	local itemID = GetAmmoSlotItemID()
-	if not itemID then
-		return nil
-	end
-	local name = SafeGetItemInfo(itemID)
-	local kind = ClassifyAmmo(itemID) or GetEquippedAmmoKind()
-	return itemID, name, kind
-end
-
 -- The kind of ammo the equipped weapon fires, plus the carried types and
 -- the one currently being fired. Nil when no ranged weapon is equipped.
 function ns.GetFiringAmmo()
