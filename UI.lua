@@ -832,6 +832,84 @@ local function CreateOptionsFrame()
 		function() return ns.db.icon.locked end,
 		function(value) ns.db.icon.locked = value end)
 
+	-- Ammo use, per character: one count per shot or ranged ability use, split
+	-- by the ammo item in the slot at that moment. Filled in by Core\Shots.lua.
+	local useDivider = content:CreateTexture(nil, "ARTWORK")
+	useDivider:SetColorTexture(1, 1, 1, 0.1)
+	useDivider:SetHeight(1)
+	useDivider:SetPoint("TOPLEFT", content, "TOPLEFT", 10, y)
+	useDivider:SetPoint("TOPRIGHT", content, "TOPRIGHT", -10, y)
+	y = y - 12
+
+	local useHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	useHeader:SetPoint("TOPLEFT", content, "TOPLEFT", 16, y)
+	useHeader:SetText("Ammo use (this character)")
+	useHeader:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
+	y = y - 18
+
+	local useSummary = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	useSummary:SetPoint("TOPLEFT", content, "TOPLEFT", 16, y)
+	useSummary:SetTextColor(0.58, 0.58, 0.58)
+	y = y - 16
+
+	local USE_ROWS = 8
+	local useRows = {}
+	for index = 1, USE_ROWS do
+		local name = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+		name:SetPoint("TOPLEFT", content, "TOPLEFT", 22, y)
+		name:SetWidth(320)
+		name:SetJustifyH("LEFT")
+		local count = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+		count:SetPoint("TOPRIGHT", content, "TOPRIGHT", -18, y)
+		count:SetJustifyH("RIGHT")
+		useRows[index] = { name = name, count = count }
+		y = y - 18
+	end
+
+	local useMore = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+	useMore:SetPoint("TOPLEFT", content, "TOPLEFT", 22, y)
+	useMore:SetTextColor(0.58, 0.58, 0.58)
+	y = y - 16
+
+	local function RefreshShotCounters()
+		if not (ns.GetShotStats and ns.FormatCount) then
+			return
+		end
+		local stats = ns.GetShotStats()
+		if stats.total == 0 then
+			useSummary:SetText("No shots recorded yet - the count starts now.")
+		else
+			useSummary:SetText("Arrows: "..ns.FormatCount(stats.arrows)
+				.."    Bullets: "..ns.FormatCount(stats.bullets)
+				.."    Total: "..ns.FormatCount(stats.total))
+		end
+		for index = 1, USE_ROWS do
+			local row = useRows[index]
+			local entry = stats.list[index]
+			if entry then
+				row.name:SetText(entry.name or ("Ammo #"..tostring(entry.itemID)))
+				row.count:SetText(ns.FormatCount(entry.count))
+				if entry.kind == "arrow" then
+					row.name:SetTextColor(0.75, 0.85, 1.0)
+				elseif entry.kind == "bullet" then
+					row.name:SetTextColor(1.0, 0.85, 0.6)
+				else
+					row.name:SetTextColor(1, 1, 1)
+				end
+			else
+				row.name:SetText("")
+				row.count:SetText("")
+			end
+		end
+		if #stats.list > USE_ROWS then
+			useMore:SetText("and "..(#stats.list - USE_ROWS).." more ammo types")
+		else
+			useMore:SetText("")
+		end
+	end
+	ns.RefreshShotCounters = RefreshShotCounters
+	table.insert(refreshers, RefreshShotCounters)
+
 	-- The list is finished. y is the bottom edge (negative), so the content
 	-- is one small padding taller than -y, and the scroll bar appears only
 	-- when the rows do not all fit the window.

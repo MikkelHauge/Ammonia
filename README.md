@@ -10,6 +10,7 @@ What it does is, provide the player with notifications (in chat) about their amm
 * **Ammo vendor** - when you open a vendor that sells ammo while a ranged weapon is equipped, it reminds you to stock up. Once per vendor visit, an optional cooldown limits repeats across visits. (Default 30 sec)
 * **Other vendors** - if you are low and open a vendor that does not sell ammo, it tells you to find one that does.
 * **Login greeting** - optionally tells you how much ammo you have left when you log in or reload.
+* **Ammo use** - counts every shot and ranged ability use against the ammo type in the slot, per character. The totals and a per-type list sit at the bottom of the settings window; `/ammonia shots` prints them in chat.
 
 It adds up every stack of the same ammo item in your bags. If you carry more than one type of the firing ammo, it shows the equipped type and the spare types separately.
 

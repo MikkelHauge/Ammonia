@@ -131,6 +131,8 @@ local function HandleSlash(message)
 		ns.FireReminder()
 	elseif command == "warn" then
 		ns.TestLowAmmoWarning()
+	elseif command == "shots" then
+		ns.ReportShots()
 	elseif command == "ammo" then
 		ns.ReportEquippedAmmo()
 	elseif command == "vendors" then
@@ -155,7 +157,7 @@ local function HandleSlash(message)
 		ns.ResetIconPosition()
 		ns.Print("Icon position reset.")
 	else
-		ns.Print("Commands: /ammonia, on, off, toggle, test, warn, ammo, vendors, missing, vendorwarn, reset")
+		ns.Print("Commands: /ammonia, on, off, toggle, test, warn, ammo, shots, vendors, missing, vendorwarn, reset")
 	end
 end
 
