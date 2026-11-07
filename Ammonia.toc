@@ -1,8 +1,8 @@
-## Interface: 16001
+## Interface: 16001, 11509
 ## Title: Ammonia
 ## Notes: Reminds you to stock up on ammo whenever you visit a vendor that sells it and you have a bow, crossbow or gun equipped. Counts your ammo and warns you in chat as it runs low.
 ## Author: Mikkel
-## Version: 20261101
+## Version: 20261107
 ## SavedVariables: AmmoniaDB
 ## IconTexture: Interface\Icons\INV_Ammo_Arrow_01
 
