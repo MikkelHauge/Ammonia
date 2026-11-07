@@ -6,6 +6,15 @@ marked for Retail. Classic Era support is partial.
 
 ---
 
+## 20261107.1 - 7 November 2026
+
+Rebuild. Removed the experimental ammo-use counter: this client blocks addons
+from reading the combat log, which produced the "blocked from an action only
+available to the Blizzard UI" message. Ammo counting and every reminder are
+unchanged from 20261107.
+
+---
+
 ## 20261107 - 7 November 2026
 
 First released build.
