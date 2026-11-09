@@ -303,8 +303,9 @@ function ns.CheckLowAmmo()
 	local level
 	if step < 1 then
 		-- No stepping: the starting threshold speaks once, and only a
-		-- restock above it arms it again.
-		level = start
+		-- restock above it arms it again. An empty quiver still gets its own
+		-- warning at 0.
+		level = (count == 0) and 0 or start
 	else
 		-- The next round number at or above the count, for example 350 when
 		-- the count is 347; clamped so the starting number is always the
