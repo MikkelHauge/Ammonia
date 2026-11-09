@@ -696,10 +696,15 @@ local function CreateOptionsFrame()
 		function() return ns.db.enabled end,
 		function(value) ns.SetEnabled(value) end)
 
-	AddCheckboxRow(content, "Chat reminder",
-		"Show the reminder as a message in your chat frame.",
+	AddCheckboxRow(content, "Text reminders",
+		"Show reminder text in your chat frame. This is the master text switch.",
 		function() return ns.db.chatAlert end,
 		function(value) ns.db.chatAlert = value end)
+
+	AddCheckboxRow(content, "Audio reminders",
+		"Play the selected chime for reminders. This is the master sound switch.",
+		function() return ns.db.chimeAlerts ~= false end,
+		function(value) ns.db.chimeAlerts = value end)
 
 	AddCheckboxRow(content, "Show ammo count",
 		"Adds the ammo you are carrying to the reminder and the missing-ammo line (Bullets: 342).",
@@ -716,15 +721,18 @@ local function CreateOptionsFrame()
 		function() return ns.db.remindMissingAmmo end,
 		function(value) ns.SetMissingAmmoReminderEnabled(value) end)
 
-	AddCheckboxRow(content, "Low ammo warnings",
-		"Warns in chat as your ammo falls: 400, then 350, then 300 ...",
-		function() return ns.db.warnLowAmmo end,
-		function(value) ns.db.warnLowAmmo = value end)
-
-	AddCheckboxRow(content, "Warn at other vendors",
-		"When a vendor that does not sell ammo opens, remind you that this one cannot help. It only reads the stock of the vendor you have open; it does not know where another one is. Part of the low-ammo warnings above.",
-		function() return ns.db.vendorLowAmmo end,
-		function(value) ns.db.vendorLowAmmo = value end)
+	AddDropdownRow(content, "Low ammo warnings",
+		"Controls the Warn at / Warn every steps below. 'Disable warnings' keeps their values but stops the messages. 'In Combat' and 'Out of Combat' refer to your character.",
+		function()
+			return {
+				{ key = "both", text = "Both" },
+				{ key = "combat", text = "In Combat" },
+				{ key = "out", text = "Out of Combat" },
+				{ key = "off", text = "|cffff5555Disable warnings|r" },
+			}
+		end,
+		function() return ns.db.warnWhen or "both" end,
+		function(value) ns.db.warnWhen = value end)
 
 	-- The warning staircase: where it starts and how far apart the steps
 	-- are. For example 400 with a step of 50 warns at 400, 350, 300 ...
@@ -740,6 +748,11 @@ local function CreateOptionsFrame()
 		function() return ns.db.warnStep end,
 		function(value) ns.db.warnStep = math.floor(value + 0.5) end,
 		nil, true, "0 gives the first warning only, with no repeats on the way down.")
+
+	AddCheckboxRow(content, "Warn at other vendors",
+		"When a vendor that does not sell ammo opens, remind you that this one cannot help. It only reads the stock of the vendor you have open; it does not know where another one is. Part of the low-ammo warnings above.",
+		function() return ns.db.vendorLowAmmo end,
+		function(value) ns.db.vendorLowAmmo = value end)
 
 	-- The vendor reminder's own switch. It sits next to the text it uses, so
 	-- the pair reads as one setting: whether it speaks, and what it says.

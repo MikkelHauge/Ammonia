@@ -9,6 +9,8 @@ eventFrame:RegisterEvent("MERCHANT_CLOSED")
 eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 
 local function HandleAmmoniaEvent(self, event, ...)
@@ -23,6 +25,17 @@ local function HandleAmmoniaEvent(self, event, ...)
 		end
 		ns.db = AmmoniaDB
 		ns.ApplyDefaults(ns.db, ns.DEFAULTS)
+		-- The old single low-ammo switch became the warnWhen dropdown: keep
+		-- an explicit "off" for saves that had warnings disabled.
+		if ns.db.warnWhenRevision ~= 1 then
+			ns.db.warnWhenRevision = 1
+			if ns.db.warnLowAmmo == false then
+				ns.db.warnWhen = "off"
+			elseif ns.db.warnWhen ~= "combat" and ns.db.warnWhen ~= "out"
+				and ns.db.warnWhen ~= "off" then
+				ns.db.warnWhen = "both"
+			end
+		end
 		-- The icon used to be draggable anywhere; it now rides the minimap's
 		-- edge. Old saves get the new starting angle once (not in DEFAULTS,
 		-- so ApplyDefaults above cannot set it first), which also keeps it
@@ -76,6 +89,10 @@ local function HandleAmmoniaEvent(self, event, ...)
 			ns.CheckLowAmmo()
 			ns.ScheduleMissingAmmoCheck(true)
 		end
+	elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED" then
+		-- Entering or leaving combat changes whether the low-ammo mode lets
+		-- the staircase speak.
+		ns.CheckLowAmmo()
 	end
 end
 
@@ -103,7 +120,8 @@ watchFrame:SetScript("OnUpdate", function(_, delta)
 		return
 	end
 	watchElapsed = 0
-	if ns.db and ns.db.enabled and (ns.db.warnLowAmmo or ns.db.greetOnLoad) then
+	if ns.db and ns.db.enabled
+		and ((ns.LowAmmoActive and ns.LowAmmoActive()) or ns.db.greetOnLoad) then
 		pcall(ns.CheckLowAmmo)
 	end
 end)

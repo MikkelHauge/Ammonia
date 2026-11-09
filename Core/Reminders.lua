@@ -29,7 +29,9 @@ function ns.FireReminder(message)
 			end
 		end
 	end
-	ns.PlayChime()
+	if ns.db.chimeAlerts ~= false then
+		ns.PlayChime()
+	end
 end
 
 -- Reminds at most once per vendor visit. The flag resets on MERCHANT_SHOW,
@@ -77,7 +79,49 @@ local sawRealAmmo = false
 -- flag keeps a later zone or bag update from repeating it.
 local greetedThisSession = false
 
+-- How the low-ammo staircase responds to combat, and the channel masters.
+-- "both" always, "combat" only while the player is in combat, "out" only
+-- outside combat, "off" mutes the staircase while keeping its values.
+local function WarnMode()
+	local mode = ns.db and ns.db.warnWhen or "both"
+	if mode ~= "combat" and mode ~= "out" and mode ~= "off" then
+		mode = "both"
+	end
+	return mode
+end
 
+local function InCombat()
+	if type(UnitAffectingCombat) ~= "function" then
+		return false
+	end
+	local ok, inCombat = pcall(UnitAffectingCombat, "player")
+	return ok and inCombat and true or false
+end
+
+local function LowAmmoChannelsOn()
+	if not ns.db then
+		return false
+	end
+	return (ns.db.chatAlert or ns.db.chimeAlerts ~= false) and true or false
+end
+
+local function LowAmmoIsActive()
+	return WarnMode() ~= "off" and LowAmmoChannelsOn()
+end
+
+local function LowAmmoIsAllowed()
+	local mode = WarnMode()
+	if mode == "off" then
+		return false
+	elseif mode == "combat" then
+		return InCombat()
+	elseif mode == "out" then
+		return not InCombat()
+	end
+	return true
+end
+
+ns.LowAmmoActive = LowAmmoIsActive
 
 local missingAmmoCheckGeneration = 0
 local missingAmmoReminded = false
@@ -146,7 +190,10 @@ function ns.SetMissingAmmoReminderEnabled(enabled)
 end
 
 function ns.TryLowAmmoMerchantWarning()
-	if not ns.db or not ns.db.enabled or not ns.db.warnLowAmmo or not ns.db.vendorLowAmmo or lowAmmoWarnedThisVendor then
+	if not ns.db or not ns.db.enabled or not LowAmmoIsActive() or not ns.db.vendorLowAmmo or lowAmmoWarnedThisVendor then
+		return
+	end
+	if not LowAmmoIsAllowed() then
 		return
 	end
 	local itemCount = GetMerchantNumItems and GetMerchantNumItems() or 0
@@ -162,13 +209,16 @@ function ns.TryLowAmmoMerchantWarning()
 		return
 	end
 	lowAmmoWarnedThisVendor = true
-	local colour = ns.GetMessageColour()
-	if DEFAULT_CHAT_FRAME then
-		DEFAULT_CHAT_FRAME:AddMessage("You're low on Ammo, find a merchant that sells it", colour.r, colour.g, colour.b)
+	if ns.db.chatAlert then
+		local colour = ns.GetMessageColour()
+		if DEFAULT_CHAT_FRAME then
+			DEFAULT_CHAT_FRAME:AddMessage("You're low on Ammo, find a merchant that sells it", colour.r, colour.g, colour.b)
+		end
 	end
-	-- Same chime as the other vendor and missing-ammo reminders, so a low
-	-- warning at the wrong vendor is not the one silent message.
-	ns.PlayChime()
+	-- Same chime as the other vendor and missing-ammo reminders.
+	if ns.db.chimeAlerts ~= false then
+		ns.PlayChime()
+	end
 end
 
 local function ScheduleMerchantAmmoCheck()
@@ -192,15 +242,23 @@ function ns.FireLowAmmoWarning(kind, count)
 	else
 		text = "Low ammo: "..ns.AmmoAmountText(kind, count)
 	end
-	local colour = ns.GetMessageColour()
-	if DEFAULT_CHAT_FRAME then
-		DEFAULT_CHAT_FRAME:AddMessage(text, colour.r, colour.g, colour.b)
+	if ns.db and ns.db.chatAlert then
+		local colour = ns.GetMessageColour()
+		if DEFAULT_CHAT_FRAME then
+			DEFAULT_CHAT_FRAME:AddMessage(text, colour.r, colour.g, colour.b)
+		end
+	end
+	if ns.db and ns.db.chimeAlerts ~= false then
+		ns.PlayChime()
 	end
 end
 
 -- The friendly line shown once per session, the first time a real ammo
 -- count is seen: "Ammonia enabled - You have 1,183 bullets left".
 function ns.FireAmmoGreeting(kind, count)
+	if not (ns.db and ns.db.chatAlert) then
+		return
+	end
 	local text = "Ammonia enabled - You have "..ns.AmmoAmountText(kind, count)
 	local colour = ns.GetMessageColour()
 	if DEFAULT_CHAT_FRAME then
@@ -217,10 +275,10 @@ function ns.CheckLowAmmo()
 		announcedLevel = nil
 		return
 	end
-	if not ns.db.warnLowAmmo and greetedThisSession then
-		-- Warnings are off and the greeting has already been said: nothing
-		-- here would speak up, so the slow bag scan is skipped. The reset
-		-- keeps switching the warnings back on re-armed, exactly as before.
+	if not LowAmmoIsActive() and greetedThisSession then
+		-- Warnings are off (or both channels are muted) and the greeting has
+		-- already been said: nothing here would speak up, so the slow bag scan
+		-- is skipped. The reset keeps switching back on re-armed.
 		announcedLevel = nil
 		return
 	end
@@ -262,7 +320,9 @@ function ns.CheckLowAmmo()
 	-- the next spoken level is a genuine crossing.
 	if not greetedThisSession then
 		greetedThisSession = true
-		if ns.db.greetOnLoad then
+		-- The greeting is chat-only. With text reminders off, fall through to
+		-- the staircase so an audio-only setup still gets its first warning.
+		if ns.db.greetOnLoad and ns.db.chatAlert then
 			ns.FireAmmoGreeting(kind, count)
 			-- With a zero threshold the only step is 0. The greeting must not
 			-- pretend it was already announced, or the out-of-ammo warning
@@ -276,10 +336,15 @@ function ns.CheckLowAmmo()
 			return
 		end
 	end
-	if not ns.db.warnLowAmmo then
-		-- Warnings switched off: the count was looked at for the greeting,
-		-- and nothing else is said about it.
+	if not LowAmmoIsActive() then
+		-- Warnings switched off (or both channels muted): the count was
+		-- looked at for the greeting, and nothing else is said about it.
 		announcedLevel = nil
+		return
+	end
+	if not LowAmmoIsAllowed() then
+		-- Right mode, wrong combat state. Leave announcedLevel alone so that
+		-- entering the allowed state warns only if the count actually fell.
 		return
 	end
 	if count > start then

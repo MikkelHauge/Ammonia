@@ -227,13 +227,17 @@ local DEFAULTS = {
 	-- One switch for every line Ammonia posts in chat; each kind of message
 	-- also has its own switch below.
 	chatAlert = true,
+	-- One switch for the chime. Off means every reminder is silent.
+	chimeAlerts = true,
 	showAmmoCount = true,
 	greetOnLoad = true,
 	-- The "buy ammo" reminder at a vendor that sells ammo.
 	vendorReminder = true,
 	-- The "equip or purchase compatible ammo" reminder.
 	remindMissingAmmo = true,
-	warnLowAmmo = true,
+	-- Low-ammo staircase: "both", "combat", "out" or "off". Off keeps the
+	-- Warn at / Warn every values but stops the messages.
+	warnWhen = "both",
 	-- The "find a merchant that sells it" line at a vendor that does not.
 	vendorLowAmmo = true,
 	warnBelow = 400,
