@@ -9,6 +9,7 @@ eventFrame:RegisterEvent("MERCHANT_CLOSED")
 eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
@@ -78,7 +79,11 @@ local function HandleAmmoniaEvent(self, event, ...)
 			ns.OnMerchantClosed()
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" then
-		-- Covers logging in or zoning while the ammo is already low.
+		-- Covers logging in or zoning while the ammo is already low. The zone
+		-- grace keeps a loading-screen zero from printing a false warning.
+		if ns.NoteZoneChange then
+			ns.NoteZoneChange()
+		end
 		ns.CheckLowAmmo()
 		ns.ScheduleMissingAmmoCheck(false)
 		-- The minimap has its real size by now: put the icon back on its
@@ -95,6 +100,10 @@ local function HandleAmmoniaEvent(self, event, ...)
 			-- Swapping weapons can change which ammo is being counted.
 			ns.CheckLowAmmo()
 			ns.ScheduleMissingAmmoCheck(true)
+		end
+	elseif event == "ZONE_CHANGED_NEW_AREA" then
+		if ns.NoteZoneChange then
+			ns.NoteZoneChange()
 		end
 	elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED" then
 		-- Entering or leaving combat changes whether the low-ammo mode lets

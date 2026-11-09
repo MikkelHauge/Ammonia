@@ -68,17 +68,22 @@ end
 -- the last level, and nil means "fully armed".
 local announcedLevel
 
--- Right after a login or a reload the game can still be filling in its bag
--- and item details for a moment, and a scan during that moment looks exactly
--- like an empty quiver. This flag turns true as soon as one real stack of
--- ammo has actually been seen this session; until then a zero is treated as
--- "not known yet" and stays quiet.
-local sawRealAmmo = false
-
 -- A genuine empty quiver looks exactly like a bag scan that has not finished
--- yet. Trust a zero only after it has persisted for a few seconds, so it
--- still gets the greeting and the out-of-ammo warning.
+-- yet (and a loading screen can empty it for a moment). Trust a zero only
+-- after it has persisted for a few seconds, so it still gets the greeting
+-- and the out-of-ammo warning.
 local zeroSince
+
+-- A loading screen, hearthstone or layer switch can empty the bag and ammo
+-- reads for a moment. Suppress low-ammo output briefly after entering a new
+-- zone, and start the zero trust over, so a transient zero cannot print.
+local ZONE_GRACE = 5
+local zoneSuppressUntil = 0
+
+function ns.NoteZoneChange()
+	zoneSuppressUntil = GetTime() + ZONE_GRACE
+	zeroSince = nil
+end
 
 -- The greeting happens once per session (once per login or reload); this
 -- flag keeps a later zone or bag update from repeating it.
@@ -290,6 +295,10 @@ function ns.CheckLowAmmo()
 		announcedLevel = nil
 		return
 	end
+	if GetTime() < zoneSuppressUntil then
+		-- Just zoned, hearthed or changed layer: the reads may still be empty.
+		return
+	end
 	if not LowAmmoIsActive() and greetedThisSession then
 		-- Warnings are off (or both channels are muted) and the greeting has
 		-- already been said: nothing here would speak up, so the slow bag scan
@@ -297,7 +306,7 @@ function ns.CheckLowAmmo()
 		announcedLevel = nil
 		return
 	end
-	local kind, types, equipped = ns.GetFiringAmmo()
+	local kind, _, equipped = ns.GetFiringAmmo()
 	if not kind then
 		announcedLevel = nil
 		return
@@ -305,12 +314,9 @@ function ns.CheckLowAmmo()
 	-- The warnings count the firing type: the bullets the gun will use up
 	-- next, not the grand total over every type carried.
 	local count = equipped and equipped.count or 0
-	if #types > 0 then
-		sawRealAmmo = true
-	end
-	if count == 0 and not sawRealAmmo then
-		-- The bags may still be filling in: a fresh zero is not trusted, but
-		-- one that persists is a real empty quiver.
+	if count == 0 then
+		-- A fresh zero is not trusted: it can be a bag scan that has not
+		-- finished. One that persists is a real empty quiver.
 		zeroSince = zeroSince or GetTime()
 		if (GetTime() - zeroSince) < 3 then
 			return
