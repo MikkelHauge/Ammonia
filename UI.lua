@@ -545,7 +545,7 @@ local function CreateOptionsFrame()
 
 	-- One slider setting: title with the current value in brackets, a track,
 	-- and the two ends left blank (the numbers are in the title).
-	local function AddSliderRow(parent, title, minValue, maxValue, step, getter, setter, formatValue)
+	local function AddSliderRow(parent, title, minValue, maxValue, step, getter, setter, formatValue, allowEdit, editHint)
 		local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate")
 		slider:SetPoint("TOPLEFT", parent, "TOPLEFT", 18, y - 16)
 		slider:SetWidth(320)
@@ -570,9 +570,19 @@ local function CreateOptionsFrame()
 			return tostring(math.floor(value + 0.5))
 		end
 
+		local function Raw(value)
+			return tostring(math.floor((tonumber(value) or minValue) + 0.5))
+		end
+
+		-- The optional box on the right takes an exact number, including ones
+		-- the slider's step cannot land on. It always clamps to min..max.
+		local editBox
 		local function UpdateTitle(value)
 			if slider.Text then
 				slider.Text:SetText(title.."  ("..Format(value)..")")
+			end
+			if editBox and not editBox:HasFocus() then
+				editBox:SetText(Raw(value))
 			end
 		end
 
@@ -580,6 +590,28 @@ local function CreateOptionsFrame()
 		-- "updating" flag keeps refreshers from bouncing straight back into
 		-- the setter while they move the thumb themselves.
 		local updating = false
+		local function ApplyValue(value)
+			local number = tonumber(value)
+			if not number then
+				-- An empty box (or a lost focus mid-edit) keeps the setting
+				-- rather than silently dropping it to the minimum.
+				UpdateTitle(tonumber(getter()) or minValue)
+				return
+			end
+			value = math.floor(number + 0.5)
+			if value < minValue then
+				value = minValue
+			elseif value > maxValue then
+				value = maxValue
+			end
+			setter(value)
+			updating = true
+			slider:SetValue(value)
+			updating = false
+			UpdateTitle(value)
+			return value
+		end
+
 		slider:SetScript("OnValueChanged", function(_, value)
 			if updating then
 				return
@@ -591,6 +623,43 @@ local function CreateOptionsFrame()
 			setter(value)
 			UpdateTitle(value)
 		end)
+
+		if allowEdit then
+			editBox = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+			editBox:SetSize(78, 20)
+			editBox:SetPoint("TOPLEFT", parent, "TOPLEFT", 352, y - 12)
+			editBox:SetAutoFocus(false)
+			if editBox.SetNumeric then
+				editBox:SetNumeric(true)
+			end
+			editBox:SetMaxLetters(6)
+			editBox:SetJustifyH("CENTER")
+			editBox:SetText(Raw(getter()))
+			editBox:SetScript("OnEnterPressed", function(self)
+				ApplyValue(self:GetText())
+				self:ClearFocus()
+			end)
+			editBox:SetScript("OnEditFocusLost", function(self)
+				ApplyValue(self:GetText())
+			end)
+			editBox:SetScript("OnEscapePressed", function(self)
+				UpdateTitle(tonumber(getter()) or minValue)
+				self:ClearFocus()
+			end)
+			editBox:SetScript("OnEnter", function(self)
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+				GameTooltip:AddLine(title, ACCENT[1], ACCENT[2], ACCENT[3])
+				GameTooltip:AddLine("Type any number from "..minValue.." to "..maxValue..".", 1, 1, 1, true)
+				if editHint then
+					GameTooltip:AddLine(editHint, 0.7, 0.7, 0.7, true)
+				end
+				GameTooltip:Show()
+			end)
+			editBox:SetScript("OnLeave", function()
+				GameTooltip:Hide()
+			end)
+		end
+
 		table.insert(refreshers, function()
 			updating = true
 			local value = tonumber(getter())
@@ -659,13 +728,18 @@ local function CreateOptionsFrame()
 
 	-- The warning staircase: where it starts and how far apart the steps
 	-- are. For example 400 with a step of 50 warns at 400, 350, 300 ...
-	AddSliderRow(content, "Warn at", 50, 2000, 50,
+	-- 20,000 is 100 stacks of 200, more than a character can carry in ammo
+	-- next to the rest of their bags. The box on the right takes any exact
+	-- number, so the slider step does not limit the setting.
+	AddSliderRow(content, "Warn at", 0, 20000, 50,
 		function() return ns.db.warnBelow end,
-		function(value) ns.db.warnBelow = math.floor(value + 0.5) end)
+		function(value) ns.db.warnBelow = math.floor(value + 0.5) end,
+		nil, true, "0 warns only when the quiver is empty.")
 
-	AddSliderRow(content, "Warn every", 10, 250, 10,
+	AddSliderRow(content, "Warn every", 0, 2000, 10,
 		function() return ns.db.warnStep end,
-		function(value) ns.db.warnStep = math.floor(value + 0.5) end)
+		function(value) ns.db.warnStep = math.floor(value + 0.5) end,
+		nil, true, "0 gives the first warning only, with no repeats on the way down.")
 
 	-- The vendor reminder's own switch. It sits next to the text it uses, so
 	-- the pair reads as one setting: whether it speaks, and what it says.

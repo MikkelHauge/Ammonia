@@ -6,6 +6,18 @@ marked for Retail. Classic Era support is partial.
 
 ---
 
+## 20261109 - 9 November 2026
+
+**Changed**
+
+- The "Warn at" slider now runs from 0 to 20,000 (100 stacks of 200) and
+  "Warn every" from 0 to 2,000. Both rows have a number box on the right for
+  an exact value, whatever the slider step.
+- Warn at 0 warns only when the quiver is empty. Warn every 0 gives the first
+  warning only, with no repeats on the way down.
+
+---
+
 ## 20261107.1 - 7 November 2026
 
 Rebuild. Removed the experimental ammo-use counter: this client blocks addons

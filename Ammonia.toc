@@ -2,7 +2,7 @@
 ## Title: Ammonia
 ## Notes: Reminds you to stock up on ammo whenever you visit a vendor that sells it and you have a bow, crossbow or gun equipped. Counts your ammo and warns you in chat as it runs low.
 ## Author: Mikkel
-## Version: 20261107.1
+## Version: 20261109
 ## SavedVariables: AmmoniaDB
 ## IconTexture: Interface\Icons\INV_Ammo_Arrow_01
 

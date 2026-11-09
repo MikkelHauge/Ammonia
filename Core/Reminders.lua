@@ -242,14 +242,19 @@ function ns.CheckLowAmmo()
 	end
 	local start = tonumber(ns.db.warnBelow) or 400
 	local step = tonumber(ns.db.warnStep) or 50
+	local level
 	if step < 1 then
-		step = 1
-	end
-	-- The next round number at or above the count, for example 350 when the
-	-- count is 347; clamped so the starting number is always the first step.
-	local level = math.ceil(count / step) * step
-	if level > start then
+		-- No stepping: the starting threshold speaks once, and only a
+		-- restock above it arms it again.
 		level = start
+	else
+		-- The next round number at or above the count, for example 350 when
+		-- the count is 347; clamped so the starting number is always the
+		-- first step.
+		level = math.ceil(count / step) * step
+		if level > start then
+			level = start
+		end
 	end
 	-- The first real look of the session: greet with the count when the
 	-- greeting is on. It stands in for the first announcement (the number is
@@ -259,7 +264,15 @@ function ns.CheckLowAmmo()
 		greetedThisSession = true
 		if ns.db.greetOnLoad then
 			ns.FireAmmoGreeting(kind, count)
-			announcedLevel = level
+			-- With a zero threshold the only step is 0. The greeting must not
+			-- pretend it was already announced, or the out-of-ammo warning
+			-- would never fire. At an empty quiver the greeting already says
+			-- it, so mark that one as announced.
+			if start <= 0 then
+				announcedLevel = (count == 0) and 0 or nil
+			else
+				announcedLevel = level
+			end
 			return
 		end
 	end
