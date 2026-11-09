@@ -749,17 +749,17 @@ local function CreateOptionsFrame()
 		function(value) ns.db.warnStep = math.floor(value + 0.5) end,
 		nil, true, "0 gives the first warning only, with no repeats on the way down.")
 
-	AddCheckboxRow(content, "Warn at other vendors",
-		"When a vendor that does not sell ammo opens, remind you that this one cannot help. It only reads the stock of the vendor you have open; it does not know where another one is. Part of the low-ammo warnings above.",
-		function() return ns.db.vendorLowAmmo end,
-		function(value) ns.db.vendorLowAmmo = value end)
-
 	-- The vendor reminder's own switch. It sits next to the text it uses, so
 	-- the pair reads as one setting: whether it speaks, and what it says.
 	AddCheckboxRow(content, "Remind me at ammo vendors",
 		"The 'buy ammo' line when a vendor that sells ammo opens. Off leaves the low-ammo warnings and the missing-ammo line alone.",
 		function() return ns.db.vendorReminder end,
 		function(value) ns.db.vendorReminder = value end)
+
+	AddCheckboxRow(content, "Warn at other vendors",
+		"When a vendor that does not sell ammo opens, remind you that this one cannot help. It only reads the stock of the vendor you have open; it does not know where another one is. Part of the low-ammo warnings above.",
+		function() return ns.db.vendorLowAmmo end,
+		function(value) ns.db.vendorLowAmmo = value end)
 
 	-- Reminder text
 	local textLabel = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
