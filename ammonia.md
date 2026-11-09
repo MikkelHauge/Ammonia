@@ -12,6 +12,46 @@ settings look the way they do, and what changed when.
 
 ---
 
+## Architecture at a glance
+
+```
+game events + 1-second watch
+        |
+        v
+Core/Events.lua            triggers: bags, inventory, merchants, login
+        |
+        v
+Core/Reminders.lua         decisions: staircase, missing ammo, vendors
+        |
+        +--> Core/Ammo.lua reads: bags, ammo slot, item classification
+        |
+        v
+AmmoniaDB                  settings + per-character/session state
+        |
+        v
+UI.lua                     settings window + minimap icon
+        |
+        v
+output                     chat / chime, through the channel helpers
+```
+
+- **State:** `AmmoniaDB` for settings, plus session locals for the staircase
+  level, whether real ammo has been seen, the greeting and per-visit flags.
+- **Detection:** `Core/Ammo.lua` turns client reads into `kind, types,
+  equipped count`.
+- **Decision:** `Core/Reminders.lua` decides whether a warning is due; it does
+  not touch the UI.
+- **Triggers:** `Core/Events.lua` wires game events and the 1-second watch to
+  those decisions.
+- **Presentation:** `UI.lua` reads state and writes settings; it never does
+  detection itself.
+- **Output:** every chat line and chime goes through the channel helpers, so
+  the global Text/Audio switches stay authoritative.
+
+The detailed layers are in sections 3-6 below.
+
+---
+
 ## 1. What Ammonia is
 
 Ammo reminder for **WoW Forever 1.60.1** (`## Interface: 16001`) and
