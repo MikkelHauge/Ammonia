@@ -717,9 +717,20 @@ local function CreateOptionsFrame()
 		function(value) ns.db.greetOnLoad = value end)
 
 	AddCheckboxRow(content, "Remind me when ammo is missing",
-		"When a bow, gun or crossbow is equipped with no compatible ammo in the ammo slot. Repeats every five minutes while it stays empty.",
+		"When a bow, gun or crossbow is equipped with no compatible ammo in the ammo slot. The first reminder comes after 15 seconds.",
 		function() return ns.db.remindMissingAmmo end,
 		function(value) ns.SetMissingAmmoReminderEnabled(value) end)
+
+	AddCheckboxRow(content, "Repeat while still missing",
+		"Repeat the missing-ammo line while the quiver stays empty. Off still gives the first 15-second reminder.",
+		function() return ns.db.repeatMissingAmmo ~= false end,
+		function(value) ns.db.repeatMissingAmmo = value end)
+
+	AddSliderRow(content, "Repeat every", 1, 60, 1,
+		function() return ns.db.missingAmmoMinutes end,
+		function(value) ns.db.missingAmmoMinutes = math.floor(value + 0.5) end,
+		function(value) return math.floor(value + 0.5).." min" end,
+		true, "Minutes between repeats while the quiver stays empty.")
 
 	AddDropdownRow(content, "Low ammo warnings",
 		"Controls the Warn at / Warn every steps below. 'Disable warnings' keeps their values but stops the messages. 'In Combat' and 'Out of Combat' refer to your character.",

@@ -416,12 +416,17 @@ end
 -- The one-second watch in Events.lua calls this; the five-minute repeat lives
 -- here with the rest of the missing-ammo state.
 function ns.TickMissingAmmo(delta)
-	if not ns.db or not ns.db.enabled or not ns.db.remindMissingAmmo then
+	if not ns.db or not ns.db.enabled or not ns.db.remindMissingAmmo
+		or ns.db.repeatMissingAmmo == false then
 		missingAmmoRepeatElapsed = 0
 		return
 	end
+	local minutes = tonumber(ns.db.missingAmmoMinutes) or 5
+	if minutes < 1 then
+		minutes = 1
+	end
 	missingAmmoRepeatElapsed = missingAmmoRepeatElapsed + (tonumber(delta) or 0)
-	if missingAmmoRepeatElapsed >= 300 then
+	if missingAmmoRepeatElapsed >= minutes * 60 then
 		missingAmmoRepeatElapsed = 0
 		pcall(ns.CheckEquippedAmmo, true)
 	end

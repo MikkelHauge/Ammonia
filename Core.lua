@@ -235,6 +235,9 @@ local DEFAULTS = {
 	vendorReminder = true,
 	-- The "equip or purchase compatible ammo" reminder.
 	remindMissingAmmo = true,
+	-- Repeat that line while the quiver stays empty, and how often (minutes).
+	repeatMissingAmmo = true,
+	missingAmmoMinutes = 5,
 	-- Low-ammo staircase: "both", "combat", "out" or "off". Off keeps the
 	-- Warn at / Warn every values but stops the messages.
 	warnWhen = "both",
