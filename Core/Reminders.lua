@@ -75,6 +75,11 @@ local announcedLevel
 -- "not known yet" and stays quiet.
 local sawRealAmmo = false
 
+-- A genuine empty quiver looks exactly like a bag scan that has not finished
+-- yet. Trust a zero only after it has persisted for a few seconds, so it
+-- still gets the greeting and the out-of-ammo warning.
+local zeroSince
+
 -- The greeting happens once per session (once per login or reload); this
 -- flag keeps a later zone or bag update from repeating it.
 local greetedThisSession = false
@@ -259,7 +264,17 @@ function ns.FireAmmoGreeting(kind, count)
 	if not (ns.db and ns.db.chatAlert) then
 		return
 	end
-	local text = "Ammonia enabled - You have "..ns.AmmoAmountText(kind, count)
+	local text
+	if count == 0 then
+		local carried = ns.GetAmmoSummary()
+		if carried then
+			text = "Ammonia enabled - no "..ns.AmmoLabel(kind, 2).." equipped "..carried
+		else
+			text = "Ammonia enabled - no "..ns.AmmoLabel(kind, 2).." equipped and none in your bags."
+		end
+	else
+		text = "Ammonia enabled - You have "..ns.AmmoAmountText(kind, count)
+	end
 	local colour = ns.GetMessageColour()
 	if DEFAULT_CHAT_FRAME then
 		DEFAULT_CHAT_FRAME:AddMessage(text, colour.r, colour.g, colour.b)
@@ -294,9 +309,14 @@ function ns.CheckLowAmmo()
 		sawRealAmmo = true
 	end
 	if count == 0 and not sawRealAmmo then
-		-- The bags may still be filling in (see above): a zero here is not
-		-- trusted, and the next real change will speak up instead.
-		return
+		-- The bags may still be filling in: a fresh zero is not trusted, but
+		-- one that persists is a real empty quiver.
+		zeroSince = zeroSince or GetTime()
+		if (GetTime() - zeroSince) < 3 then
+			return
+		end
+	else
+		zeroSince = nil
 	end
 	local start = tonumber(ns.db.warnBelow) or 400
 	local step = tonumber(ns.db.warnStep) or 50

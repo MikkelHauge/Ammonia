@@ -47,6 +47,13 @@ local function HandleAmmoniaEvent(self, event, ...)
 		if ns.BuildUI then
 			ns.BuildUI()
 		end
+		-- A /reload on this client raises only ADDON_LOADED, so the
+		-- PLAYER_ENTERING_WORLD schedule never runs. Start the 15-second
+		-- missing-ammo check here too; duplicate schedules are generation
+		-- guarded.
+		if ns.ScheduleMissingAmmoCheck then
+			ns.ScheduleMissingAmmoCheck(true)
+		end
 		return
 	end
 	if event == "PLAYER_LOGOUT" then
